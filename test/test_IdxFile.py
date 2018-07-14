@@ -2,6 +2,7 @@ import pytest
 from mnistdp import IdxFile
 import os
 import numpy as np
+from .trainin_image_10 import train_image
 
 
 class TestIDXFile:
@@ -76,9 +77,13 @@ class TestIDXFile:
 
     def test_generator_data_train_image(self):
         gen = self.idx_tr_images.generator()
-        test_image = 10
+        test_image = 5
         i = 0
         while i < test_image:
             image = gen.__next__()  # type:np.ndarray
+            print(f"#{i} comparing {image.shape} and {train_image[i].shape}")
+            assertion = np.array_equal(image, train_image[i])
+            if not assertion:
+                print(image)
+            assert assertion
             i += 1
-            print(f"{image.shape} {image}")
