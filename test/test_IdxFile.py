@@ -1,5 +1,5 @@
 import pytest
-from app import IdxFile
+from mnistdp import IdxFile
 import os
 
 

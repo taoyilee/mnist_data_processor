@@ -1,5 +1,5 @@
 import pytest
-from app.MNISTProcessor import MNISTProcessor
+from mnistdp.MNISTProcessor import MNISTProcessor
 import os
 
 
