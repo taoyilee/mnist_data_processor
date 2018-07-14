@@ -39,7 +39,7 @@ Email: taoyil AT UCI DOT EDU
 
 Your inputs are highly appreciated. :D
 
-##License  
+## License  
 MIT License
 
 Copyright (c) 2018 Michael (Tao-Yi) Lee
