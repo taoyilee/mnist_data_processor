@@ -5,10 +5,36 @@ import struct
 class IdxFile:
     TYPE_MAPPING = {b"\x08": "unsigned byte", b"\x09": "signed byte", b"\x0B": "short (2 bytes)",
                     b"\x0C": "int (4 bytes)", b"\x0D": "float (4 bytes)", b"\x0E": "double (8 bytes)"}
+    BYTE_MAPPING = {b"\x08": 1, b"\x09": 1, b"\x0B": 2, b"\x0C": 4, b"\x0D": 4, b"\x0E": 8}
+    NP_TYPE_MAPPING = {b"\x08": np.uint8, b"\x09": np.int8, b"\x0B": np.short, b"\x0C": np.int32, b"\x0D": np.float32,
+                       b"\x0E": np.double}
 
-    def __init__(self, dimension, type_flag):
+    def __init__(self, file_name, dimension, type_flag):
+        self.file_name = file_name
         self.dimension = dimension
         self.type_flag = type_flag
+
+    def __len__(self):
+        return self.dimension[0]
+
+    def _read_data_sample(self, data_matrix: np.ndarray, fptr):
+        for x in np.nditer(data_matrix, op_flags=['readwrite']):
+            data_bytes = fptr.read(self.BYTE_MAPPING[self.type_flag])
+            data_unpacked = struct.unpack("B", data_bytes)[0]
+            x[...] = data_unpacked
+
+    def generator(self):
+        with open(self.file_name, "rb") as fptr:
+            fptr.seek(2)  # skip initial 0x00 0x00
+            fptr.seek(2)  # skip magic_number
+            fptr.seek(4 * len(self.dimension))  # skip dimension
+            if len(self.dimension) == 1:
+                data = np.zeros(1, dtype=self.NP_TYPE_MAPPING[self.type_flag])
+            else:
+                data = np.zeros(tuple(self.dimension[1:]), dtype=self.NP_TYPE_MAPPING[self.type_flag])
+            for i in range(len(self)):
+                self._read_data_sample(data, fptr)
+                yield data
 
     @classmethod
     def from_file(cls, file_name):
@@ -52,4 +78,4 @@ class IdxFile:
                 size_i = struct.unpack(">I", fptr.read(4))  # Dimension is represented in 4 bytes
                 dimension_list[d] = size_i[0]
             dimension_tuple = tuple(dimension_list)
-        return cls(dimension_tuple, type_flag)
+        return cls(file_name, dimension_tuple, type_flag)

@@ -1,6 +1,7 @@
 import pytest
 from mnistdp import IdxFile
 import os
+import numpy as np
 
 
 class TestIDXFile:
@@ -60,3 +61,24 @@ class TestIDXFile:
         assert self.idx_tr_labels.type_flag == b'\x08'
         assert self.idx_t10k_images.type_flag == b'\x08'
         assert self.idx_t10k_labels.type_flag == b'\x08'
+
+    def test_generator_length_train_image(self):
+        assert len(self.idx_tr_images) == 60000
+
+    def test_generator_length_train_label(self):
+        assert len(self.idx_tr_labels) == 60000
+
+    def test_generator_length_test_image(self):
+        assert len(self.idx_t10k_images) == 10000
+
+    def test_generator_length_test_label(self):
+        assert len(self.idx_t10k_labels) == 10000
+
+    def test_generator_data_train_image(self):
+        gen = self.idx_tr_images.generator()
+        test_image = 10
+        i = 0
+        while i < test_image:
+            image = gen.__next__()  # type:np.ndarray
+            i += 1
+            print(f"{image.shape} {image}")

@@ -53,3 +53,5 @@ class TestMNISTProcessor:
 
     def test_test_label_assignment(self):
         assert self.m.t10k_labels == "/home/tylee/01_dataset/MNIST/t10k-labels-idx1-ubyte"
+
+
