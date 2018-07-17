@@ -1,6 +1,8 @@
 import pytest
 from mnistdp.MNISTProcessor import MNISTProcessor
 import os
+import numpy as np
+from .training_image_10 import train_image
 
 
 class TestMNISTProcessor:
@@ -54,4 +56,51 @@ class TestMNISTProcessor:
     def test_test_label_assignment(self):
         assert self.m.t10k_labels == "/home/tylee/01_dataset/MNIST/t10k-labels-idx1-ubyte"
 
+    def test_train_generator(self):
+        gen = self.m.training_generator(1)
+        i = 0
+        try:
+            while i < 5:
+                image, label = gen.__next__()  # type:np.ndarray
+                assert np.array_equal(image.squeeze(), train_image[i, :, :].squeeze())
+                i += 1
+        except StopIteration:
+            pass
 
+    def test_train_generator_length(self):
+        bs = 128
+        gen = self.m.training_generator(bs)
+        i = 0
+        try:
+            while True:
+                gen.__next__()
+                i += 1
+        except StopIteration:
+            pass
+        assert i == np.ceil(60000 / bs)
+
+    def test_test_generator_length(self):
+        bs = 128
+        gen = self.m.testing_generator(bs)
+        i = 0
+        try:
+            while True:
+                gen.__next__()
+                i += 1
+        except StopIteration:
+            pass
+        assert i == np.ceil(10000 / bs)
+
+    @pytest.mark.parametrize("bs", [1, 2, 4, 5, 6, 7, 13])
+    def test_test_generator_shape(self, bs):
+        gen = self.m.testing_generator(bs)
+        image, label = gen.__next__()
+        assert image.shape == (bs, 28, 28)
+        assert label.shape == (bs, 1)
+
+    @pytest.mark.parametrize("bs", [1, 2, 4, 5, 6, 7, 13])
+    def test_train_generator_shape(self, bs):
+        gen = self.m.testing_generator(bs)
+        image, label = gen.__next__()
+        assert image.shape == (bs, 28, 28)
+        assert label.shape == (bs, 1)

@@ -4,12 +4,14 @@ from .IdxFile import IdxFile
 
 
 class MNISTProcessor:
-
-
     _tr_images: str = ""
     _tr_labels: str = ""
     _t10k_images: str = ""
     _t10k_labels: str = ""
+    tr_img_idx: IdxFile
+    tr_lbl_idx: IdxFile
+    t10k_img_idx: IdxFile
+    t10k_lbl_idx: IdxFile
 
     @property
     def tr_labels(self):
@@ -63,4 +65,23 @@ class MNISTProcessor:
         self.tr_labels = os.path.join(data_dir, self.cp["DEFAULT"]['train-labels-idx1-ubyte'])
         self.t10k_images = os.path.join(data_dir, self.cp["DEFAULT"]['t10k-images-idx3-ubyte'])
         self.t10k_labels = os.path.join(data_dir, self.cp["DEFAULT"]['t10k-labels-idx1-ubyte'])
-        tr_image_file = IdxFile.from_file(self.tr_images)
+        self.tr_img_idx, self.tr_lbl_idx, self.t10k_img_idx, self.t10k_lbl_idx = map(
+            lambda x: IdxFile.from_file(x), [self.tr_images, self.tr_labels, self.t10k_images, self.t10k_labels])
+
+    def training_generator(self, batch_size=16):
+        image_generator = self.tr_img_idx.batch_generator(batch_size=batch_size)
+        label_generator = self.tr_lbl_idx.batch_generator(batch_size=batch_size)
+        try:
+            while True:
+                yield image_generator.__next__(), label_generator.__next__()
+        except StopIteration:
+            pass
+
+    def testing_generator(self, batch_size=16):
+        image_generator = self.t10k_img_idx.batch_generator(batch_size=batch_size)
+        label_generator = self.t10k_lbl_idx.batch_generator(batch_size=batch_size)
+        try:
+            while True:
+                yield image_generator.__next__(), label_generator.__next__()
+        except StopIteration:
+            pass

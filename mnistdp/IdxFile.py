@@ -23,6 +23,22 @@ class IdxFile:
             data_unpacked = struct.unpack("B", data_bytes)[0]
             x[...] = data_unpacked
 
+    def batch_generator(self, batch_size=1):
+        gen = self.generator()
+        stop_iteration = False
+        while True:
+            if stop_iteration:
+                raise StopIteration
+            data_array = []
+            try:
+                for b in range(batch_size):
+                    image = gen.__next__()
+                    data_array.append(image.copy())
+            except StopIteration:
+                stop_iteration = True
+            if len(data_array) > 0:
+                yield np.stack(data_array, axis=0)
+
     def generator(self):
         with open(self.file_name, "rb") as fptr:
             fptr.seek(2)  # skip initial 0x00 0x00

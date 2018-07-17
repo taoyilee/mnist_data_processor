@@ -2,7 +2,7 @@ import pytest
 from mnistdp import IdxFile
 import os
 import numpy as np
-from .trainin_image_10 import train_image
+from .training_image_10 import train_image
 
 
 class TestIDXFile:
@@ -63,19 +63,54 @@ class TestIDXFile:
         assert self.idx_t10k_images.type_flag == b'\x08'
         assert self.idx_t10k_labels.type_flag == b'\x08'
 
-    def test_generator_length_train_image(self):
+    def test_length_train_image(self):
         assert len(self.idx_tr_images) == 60000
 
-    def test_generator_length_train_label(self):
+    def test_length_train_label(self):
         assert len(self.idx_tr_labels) == 60000
 
-    def test_generator_length_test_image(self):
+    def test_length_test_image(self):
         assert len(self.idx_t10k_images) == 10000
 
-    def test_generator_length_test_label(self):
+    def test_length_test_label(self):
         assert len(self.idx_t10k_labels) == 10000
 
+    def test_generator_length_train_label(self):
+        """
+        This test case will only pass if original idx file (from Yann Lecun's webpage) is provided.
+        :return:
+        """
+        gen = self.idx_tr_labels.generator()
+        i = 0
+        try:
+            while True:
+                gen.__next__()  # type:np.ndarray
+                i += 1
+        except StopIteration:
+            pass
+        assert i == 60000
+
+    def test_generator_length_train_label_batch(self):
+        """
+        This test case will only pass if original idx file (from Yann Lecun's webpage) is provided.
+        :return:
+        """
+        bs = 13
+        gen = self.idx_tr_labels.batch_generator(batch_size=bs)
+        i = 0
+        try:
+            while True:
+                gen.__next__()  # type:np.ndarray
+                i += 1
+        except StopIteration:
+            pass
+        assert i == np.ceil(60000 / bs)
+
     def test_generator_data_train_image(self):
+        """
+        This test case will only pass if original idx file (from Yann Lecun's webpage) is provided.
+        :return:
+        """
         gen = self.idx_tr_images.generator()
         test_image = 5
         i = 0
@@ -87,3 +122,34 @@ class TestIDXFile:
                 print(image)
             assert assertion
             i += 1
+
+    def test_generator_data_train_image_batch(self):
+        """
+        This test case will only pass if original idx file (from Yann Lecun's webpage) is provided.
+        :return:
+        """
+        gen = self.idx_tr_images.batch_generator(batch_size=4)
+        image = gen.__next__()  # type:np.ndarray
+        golden_result = train_image[0:4, :, :]
+        print(f"#comparing {image.shape} and {golden_result.shape}")
+        print(f"I0 {image[0]}")
+        print(f"I1 {image[1]}")
+        print(f"I2 {image[2]}")
+        print(f"I3 {image[3]}")
+        print(f"G0 {golden_result[0]}")
+        assert np.array_equal(image, golden_result)
+
+    def test_batch_train_image(self):
+        """
+        This test case will only pass if original idx file (from Yann Lecun's webpage) is provided.
+        :return:
+        """
+        gen = self.idx_tr_images.batch_generator(batch_size=7)
+        i = 0
+        try:
+            while i < 10:
+                image = gen.__next__()  # type:np.ndarray
+                print(f"#{i} {image.shape}")
+                i += 1
+        except StopIteration:
+            print(f"Last batch: #{i} {image.shape}")
