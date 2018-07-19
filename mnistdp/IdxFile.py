@@ -17,40 +17,24 @@ class IdxFile:
     def __len__(self):
         return self.dimension[0]
 
-    def _read_data_sample(self, data_matrix: np.ndarray, fptr):
-        for x in np.nditer(data_matrix, op_flags=['readwrite']):
-            data_bytes = fptr.read(self.BYTE_MAPPING[self.type_flag])
-            data_unpacked = struct.unpack("B", data_bytes)[0]
-            x[...] = data_unpacked
+    def _read_data_sample(self, shape, fptr):
+        bytes_per_data = self.BYTE_MAPPING[self.type_flag]
+        data_bytes = fptr.read(np.prod(shape) * bytes_per_data)
+        return np.ndarray(shape, "B", data_bytes)
 
-    def batch_generator(self, batch_size=1):
-        gen = self.generator()
-        stop_iteration = False
-        while True:
-            if stop_iteration:
-                raise StopIteration
-            data_array = []
-            try:
-                for b in range(batch_size):
-                    image = gen.__next__()
-                    data_array.append(image.copy())
-            except StopIteration:
-                stop_iteration = True
-            if len(data_array) > 0:
-                yield np.stack(data_array, axis=0)
-
-    def generator(self):
+    def generator(self, batch_size=1):
         with open(self.file_name, "rb") as fptr:
             fptr.seek(2)  # skip initial 0x00 0x00
             fptr.seek(2)  # skip magic_number
             fptr.seek(4 * len(self.dimension))  # skip dimension
-            if len(self.dimension) == 1:
-                data = np.zeros(1, dtype=self.NP_TYPE_MAPPING[self.type_flag])
-            else:
-                data = np.zeros(tuple(self.dimension[1:]), dtype=self.NP_TYPE_MAPPING[self.type_flag])
-            for i in range(len(self)):
-                self._read_data_sample(data, fptr)
-                yield data
+            for i in range(int(np.ceil(len(self) / batch_size))):
+                if i == int(np.ceil(len(self) / batch_size)) - 1:
+                    batch_size = len(self) % batch_size if len(self) % batch_size != 0 else batch_size
+                if len(self.dimension) == 1:
+                    shape = batch_size
+                else:
+                    shape = tuple([batch_size] + list(self.dimension[1:]))
+                yield self._read_data_sample(shape, fptr)
 
     @classmethod
     def from_file(cls, file_name):

@@ -96,11 +96,11 @@ class TestMNISTProcessor:
         gen = self.m.testing_generator(bs)
         image, label = gen.__next__()
         assert image.shape == (bs, 28, 28)
-        assert label.shape == (bs, 1)
+        assert label.shape == (bs,)
 
     @pytest.mark.parametrize("bs", [1, 2, 4, 5, 6, 7, 13])
     def test_train_generator_shape(self, bs):
         gen = self.m.testing_generator(bs)
         image, label = gen.__next__()
         assert image.shape == (bs, 28, 28)
-        assert label.shape == (bs, 1)
+        assert label.shape == (bs, )

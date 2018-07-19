@@ -14,7 +14,9 @@ def dump_image(idx_file_name, output_dir):
     i = 0
     try:
         while True:
-            image = Image.fromarray(image_generator.__next__())
+            image_array = image_generator.__next__().squeeze()
+            print(image_array.shape)
+            image = Image.fromarray(image_array)
             output_image = os.path.join(output_dir, f"{idx_file_basename}_{i:05d}.png")
             print(f"Writing out {output_image}")
             image.save(output_image)

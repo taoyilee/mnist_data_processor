@@ -69,8 +69,9 @@ class MNISTProcessor:
             lambda x: IdxFile.from_file(x), [self.tr_images, self.tr_labels, self.t10k_images, self.t10k_labels])
 
     def training_generator(self, batch_size=16):
-        image_generator = self.tr_img_idx.batch_generator(batch_size=batch_size)
-        label_generator = self.tr_lbl_idx.batch_generator(batch_size=batch_size)
+        # TODO: merge generators for DRY
+        image_generator = self.tr_img_idx.generator(batch_size=batch_size)
+        label_generator = self.tr_lbl_idx.generator(batch_size=batch_size)
         try:
             while True:
                 yield image_generator.__next__(), label_generator.__next__()
@@ -78,8 +79,8 @@ class MNISTProcessor:
             pass
 
     def testing_generator(self, batch_size=16):
-        image_generator = self.t10k_img_idx.batch_generator(batch_size=batch_size)
-        label_generator = self.t10k_lbl_idx.batch_generator(batch_size=batch_size)
+        image_generator = self.t10k_img_idx.generator(batch_size=batch_size)
+        label_generator = self.t10k_lbl_idx.generator(batch_size=batch_size)
         try:
             while True:
                 yield image_generator.__next__(), label_generator.__next__()

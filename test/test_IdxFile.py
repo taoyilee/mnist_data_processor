@@ -96,7 +96,7 @@ class TestIDXFile:
         :return:
         """
         bs = 13
-        gen = self.idx_tr_labels.batch_generator(batch_size=bs)
+        gen = self.idx_tr_labels.generator(batch_size=bs)
         i = 0
         try:
             while True:
@@ -117,7 +117,7 @@ class TestIDXFile:
         while i < test_image:
             image = gen.__next__()  # type:np.ndarray
             print(f"#{i} comparing {image.shape} and {train_image[i].shape}")
-            assertion = np.array_equal(image, train_image[i])
+            assertion = np.array_equal(image.squeeze(), train_image[i, :, :].squeeze())
             if not assertion:
                 print(image)
             assert assertion
@@ -128,7 +128,7 @@ class TestIDXFile:
         This test case will only pass if original idx file (from Yann Lecun's webpage) is provided.
         :return:
         """
-        gen = self.idx_tr_images.batch_generator(batch_size=4)
+        gen = self.idx_tr_images.generator(batch_size=4)
         image = gen.__next__()  # type:np.ndarray
         golden_result = train_image[0:4, :, :]
         print(f"#comparing {image.shape} and {golden_result.shape}")
@@ -139,17 +139,16 @@ class TestIDXFile:
         print(f"G0 {golden_result[0]}")
         assert np.array_equal(image, golden_result)
 
-    def test_batch_train_image(self):
+    def test_last_batch_size_train(self):
         """
         This test case will only pass if original idx file (from Yann Lecun's webpage) is provided.
         :return:
         """
-        gen = self.idx_tr_images.batch_generator(batch_size=7)
-        i = 0
+        bs = 7
+        gen = self.idx_tr_images.generator(batch_size=bs)
         try:
-            while i < 10:
+            while True:
                 image = gen.__next__()  # type:np.ndarray
-                print(f"#{i} {image.shape}")
-                i += 1
         except StopIteration:
-            print(f"Last batch: #{i} {image.shape}")
+            last_batch_expected_size = 60000 % bs
+            assert last_batch_expected_size == image.shape[0]
