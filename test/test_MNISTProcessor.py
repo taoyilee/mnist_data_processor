@@ -67,8 +67,8 @@ class TestMNISTProcessor:
         except StopIteration:
             pass
 
-    def test_train_generator_length(self):
-        bs = 128
+    @pytest.mark.parametrize("bs", range(1, 128, 4))
+    def test_train_generator_length(self, bs):
         gen = self.m.training_generator(bs)
         i = 0
         try:
@@ -79,8 +79,8 @@ class TestMNISTProcessor:
             pass
         assert i == np.ceil(60000 / bs)
 
-    def test_test_generator_length(self):
-        bs = 128
+    @pytest.mark.parametrize("bs", range(1, 128, 4))
+    def test_test_generator_length(self, bs):
         gen = self.m.testing_generator(bs)
         i = 0
         try:
@@ -91,16 +91,16 @@ class TestMNISTProcessor:
             pass
         assert i == np.ceil(10000 / bs)
 
-    @pytest.mark.parametrize("bs", [1, 2, 4, 5, 6, 7, 13])
+    @pytest.mark.parametrize("bs", range(1, 32, 1))
     def test_test_generator_shape(self, bs):
         gen = self.m.testing_generator(bs)
         image, label = gen.__next__()
         assert image.shape == (bs, 28, 28)
         assert label.shape == (bs,)
 
-    @pytest.mark.parametrize("bs", [1, 2, 4, 5, 6, 7, 13])
+    @pytest.mark.parametrize("bs", range(1, 32, 1))
     def test_train_generator_shape(self, bs):
         gen = self.m.testing_generator(bs)
         image, label = gen.__next__()
         assert image.shape == (bs, 28, 28)
-        assert label.shape == (bs, )
+        assert label.shape == (bs,)

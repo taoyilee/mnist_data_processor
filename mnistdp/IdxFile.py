@@ -27,14 +27,14 @@ class IdxFile:
             fptr.seek(2)  # skip initial 0x00 0x00
             fptr.seek(2)  # skip magic_number
             fptr.seek(4 * len(self.dimension))  # skip dimension
-            for i in range(int(np.ceil(len(self) / batch_size))):
-                if i == int(np.ceil(len(self) / batch_size)) - 1:
-                    batch_size = len(self) % batch_size if len(self) % batch_size != 0 else batch_size
-                if len(self.dimension) == 1:
-                    shape = batch_size
-                else:
-                    shape = tuple([batch_size] + list(self.dimension[1:]))
+            shape = [batch_size]
+            if len(self.dimension) > 1:
+                shape += self.dimension[1:]
+            for i in range(int(np.ceil(len(self) / batch_size) - 1)):
                 yield self._read_data_sample(shape, fptr)
+            last_batch_size = len(self) % batch_size if len(self) % batch_size != 0 else batch_size
+            shape[0] = last_batch_size
+            yield self._read_data_sample(shape, fptr)
 
     @classmethod
     def from_file(cls, file_name):

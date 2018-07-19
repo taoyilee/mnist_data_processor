@@ -90,12 +90,13 @@ class TestIDXFile:
             pass
         assert i == 60000
 
-    def test_generator_length_train_label_batch(self):
+    @pytest.mark.parametrize("bs", range(1, 32, 1))
+    def test_generator_length_train_label_batch(self, bs):
         """
         This test case will only pass if original idx file (from Yann Lecun's webpage) is provided.
         :return:
         """
-        bs = 13
+
         gen = self.idx_tr_labels.generator(batch_size=bs)
         i = 0
         try:
@@ -116,7 +117,6 @@ class TestIDXFile:
         i = 0
         while i < test_image:
             image = gen.__next__()  # type:np.ndarray
-            print(f"#{i} comparing {image.shape} and {train_image[i].shape}")
             assertion = np.array_equal(image.squeeze(), train_image[i, :, :].squeeze())
             if not assertion:
                 print(image)
@@ -131,24 +131,18 @@ class TestIDXFile:
         gen = self.idx_tr_images.generator(batch_size=4)
         image = gen.__next__()  # type:np.ndarray
         golden_result = train_image[0:4, :, :]
-        print(f"#comparing {image.shape} and {golden_result.shape}")
-        print(f"I0 {image[0]}")
-        print(f"I1 {image[1]}")
-        print(f"I2 {image[2]}")
-        print(f"I3 {image[3]}")
-        print(f"G0 {golden_result[0]}")
         assert np.array_equal(image, golden_result)
 
-    def test_last_batch_size_train(self):
+    @pytest.mark.parametrize("bs", range(1, 32, 1))
+    def test_last_batch_size_train(self, bs):
         """
         This test case will only pass if original idx file (from Yann Lecun's webpage) is provided.
         :return:
         """
-        bs = 7
         gen = self.idx_tr_images.generator(batch_size=bs)
         try:
             while True:
                 image = gen.__next__()  # type:np.ndarray
         except StopIteration:
-            last_batch_expected_size = 60000 % bs
-            assert last_batch_expected_size == image.shape[0]
+            last_batch_size = 60000 % bs if 60000 % bs != 0 else bs
+            assert last_batch_size == image.shape[0]
