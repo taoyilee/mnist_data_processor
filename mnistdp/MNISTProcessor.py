@@ -68,11 +68,11 @@ class MNISTProcessor:
         self.tr_img_idx, self.tr_lbl_idx, self.t10k_img_idx, self.t10k_lbl_idx = map(
             lambda x: IdxFile.from_file(x), [self.tr_images, self.tr_labels, self.t10k_images, self.t10k_labels])
 
-    def generator(self, set="train", batch_size=16):
+    def generator(self, mode="train", batch_size=16):
         generator_mapping = {"train": [self.tr_img_idx.generator, self.tr_lbl_idx.generator],
                              "test": [self.t10k_img_idx.generator, self.t10k_lbl_idx.generator]}
-        image_generator = generator_mapping[set][0](batch_size=batch_size)
-        label_generator = generator_mapping[set][1](batch_size=batch_size)
+        image_generator = generator_mapping[mode][0](batch_size=batch_size)
+        label_generator = generator_mapping[mode][1](batch_size=batch_size)
         try:
             while True:
                 yield image_generator.__next__(), label_generator.__next__()

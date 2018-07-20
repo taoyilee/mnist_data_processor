@@ -81,7 +81,7 @@ class TestMNISTProcessor:
 
     @pytest.mark.parametrize("bs", range(1, 128, 4))
     def test_test_generator_length(self, bs):
-        gen = self.m.generator(set="test", batch_size=bs)
+        gen = self.m.generator(mode="test", batch_size=bs)
         i = 0
         try:
             while True:
@@ -93,14 +93,14 @@ class TestMNISTProcessor:
 
     @pytest.mark.parametrize("bs", range(1, 32, 1))
     def test_test_generator_shape(self, bs):
-        gen = self.m.generator(set="test", batch_size=bs)
+        gen = self.m.generator(mode="test", batch_size=bs)
         image, label = gen.__next__()
         assert image.shape == (bs, 28, 28)
         assert label.shape == (bs,)
 
     @pytest.mark.parametrize("bs", range(1, 32, 1))
     def test_train_generator_shape(self, bs):
-        gen = self.m.generator(set="test", batch_size=bs)
+        gen = self.m.generator(mode="test", batch_size=bs)
         image, label = gen.__next__()
         assert image.shape == (bs, 28, 28)
         assert label.shape == (bs,)
